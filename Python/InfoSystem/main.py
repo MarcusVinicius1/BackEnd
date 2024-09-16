@@ -22,7 +22,6 @@ import logging
 # Configuração de logging
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Limpar a tela do terminal
 os.system('cls' if os.name == 'nt' else 'clear')
 
 class SystemScannerApp:
@@ -38,7 +37,7 @@ class SystemScannerApp:
 
         self.text_area = scrolledtext.ScrolledText(master, wrap=tk.WORD, width=80, height=20)
         self.text_area.pack(fill=tk.BOTH, expand=True)
-        self.text_area.config(state=tk.DISABLED)
+        self.text_area.config(state=tk.DISABLED, background="black", fg="white")
 
         scan_button = tk.Button(master, text="Escanear Sistema", bg="#333", border=False, fg="white", font=("sans-serif", "13", "bold"), command=self.scan_system)
         scan_button.pack(side=tk.LEFT, padx=10, pady=10)
@@ -46,12 +45,16 @@ class SystemScannerApp:
         send_button = tk.Button(master, text="Enviar Informações", bg="#333", border=False, fg="white", font=("sans-serif", "13", "bold"), command=self.send_info)
         send_button.pack(side=tk.LEFT, padx=10, pady=10)
 
-        ajuda_button = tk.Button(master, text="Pedir ajuda", bg="#333", border=False, fg="white", font=("sans-serif", "13", "bold"), command=self.ask_for_help)
+        ajuda_button = tk.Button(master, text="Ajuda", bg="#333", border=False, fg="white", font=("sans-serif", "13", "bold"), command=self.ask_for_help)
         ajuda_button.pack(side=tk.LEFT, padx=10, pady=10)
 
         self.center_window()
 
     def center_window(self):
+        """
+        Função para centralizar as janelas
+        """
+
         self.master.update_idletasks()
         width = self.master.winfo_width()
         height = self.master.winfo_height()
@@ -62,6 +65,27 @@ class SystemScannerApp:
         self.master.geometry(f'{width}x{height}+{x}+{y}')
 
     def get_info_system(self):
+        """
+        Função para coletar informações do sistema
+
+        Tipos de informações que serão coletados
+
+        -- MAC
+        -- IP
+        -- Host
+        -- Sistema
+        -- Processador
+        -- Release
+        -- Versão
+        -- Arquitetura
+
+        -- Total RAM
+        -- RAM disponível
+        -- Uso da RAM
+
+        -- Partições
+        """
+
         try:
             Mac = ':'.join(re.findall('..', '%012x' % uuid.getnode())) 
 
@@ -85,12 +109,17 @@ class SystemScannerApp:
             partitions_info = ""
             partitions = psutil.disk_partitions()
             for partition in partitions:
-                usage = psutil.disk_usage(partition.mountpoint)
-                total_storage = usage.total / (1024 ** 3)
-                used_storage = usage.used / (1024 ** 3)
-                free_storage = usage.free / (1024 ** 3)
+                try:
+                    usage = psutil.disk_usage(partition.mountpoint)
+                    total_storage = usage.total / (1024 ** 3)
+                    used_storage = usage.used / (1024 ** 3)
+                    free_storage = usage.free / (1024 ** 3)
 
-                partitions_info += f"\t-- Device: {partition.device}, Mountpoint: {partition.mountpoint}, File system: {partition.fstype}\n\n\tTotal armazenamento: {total_storage:.2f} GB\n\n\tArmazenamento usado: {used_storage:.2f} GB\n\n\tArmazenamento livre: {free_storage:.2f} GB\n\t{self.Separacao}\n\n"
+                    partitions_info += f"\t-- Device: {partition.device}, Mountpoint: {partition.mountpoint}, File system: {partition.fstype}\n\n\tTotal armazenamento: {total_storage:.2f} GB\n\n\tArmazenamento usado: {used_storage:.2f} GB\n\n\tArmazenamento livre: {free_storage:.2f} GB\n\t{self.Separacao}\n\n"
+                except Exception as e:
+                    logging.error(f"Erro ao obter informações da partição {partition.device}", exc_info=True)
+                    partitions_info += f"\t-- Device: {partition.device}, Mountpoint: {partition.mountpoint}, File system: {partition.fstype}\n\n\tErro ao obter informações\n\t{self.Separacao}\n\n"
+                    messagebox.showerror("Erro", f"Erro ao obter informações da partição {partition.device}.\nEssa partição não vai está a lista, pode enviar mesmo assim!")
 
             info = f"""
             MAC: {Mac}
@@ -119,6 +148,10 @@ class SystemScannerApp:
             messagebox.showerror("Erro", "Não foi possível obter as informações do sistema!")
 
     def send_email(self, info):
+        """
+        Função para enviar informações pelo email
+        """
+
         sender_email = os.getenv('EMAIL_USER')
         receiver_email = os.getenv('EMAIL_DESTINATARIO')
         password = os.getenv('EMAIL_PASSWORD')
@@ -151,6 +184,10 @@ class SystemScannerApp:
         self.text_area.config(state=tk.DISABLED)
 
     def send_info(self):
+        """
+        Função para enviar informações escaneadas, se o campo de vazio ele não enviar e mostrar uma notificação dizendo que o campo está vazio
+        """
+
         info = self.text_area.get(1.0, tk.END).strip()
         if not info:
             messagebox.showwarning("Alerta", "O campo de informações está vazio. Primeiro, escaneie o sistema antes de enviar!")
@@ -161,6 +198,10 @@ class SystemScannerApp:
         print('Pedido de ajuda solicitado. Implementar a funcionalidade aqui.')
 
 def main():
+    """
+    Função principal e login
+    """
+
     load_dotenv()
     Login = os.getenv('USER')
     Key = os.getenv('KEY')
