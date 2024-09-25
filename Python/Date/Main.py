@@ -11,6 +11,7 @@ app.maxsize(480, 400)
 FontSize = 50
 
 DiasSemana = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]
+ArrayMes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
 
 # Colocar a janela no centro da tela
 def CenterWindow(win):
@@ -45,11 +46,13 @@ def UpdateTime():
 
         HoraFormat = f'{Hora}:{Minuto}:{Segundo}'
         DataFormat = f'{Dia}/{Mes}/{Ano}'
+        MesFormat = ArrayMes[Mes]
         SemanaFormat = DiasSemana[Semana + 1]
 
         # Atualize o rótulo com o novo horário
         LabelTime.config(text=HoraFormat)
         LabelDate.config(text=DataFormat)
+        LabelMes.config(text=MesFormat)
         LabelSemana.config(text=SemanaFormat)
 
         # Chame esta função novamente após 1000 ms (1 segundo)
@@ -64,6 +67,9 @@ LabelTime.pack(pady=10)
 
 LabelDate = tk.Label(app, text="", font=("sans-serif", FontSize, "bold"), fg="white", bg="#333")
 LabelDate.pack(pady=10)
+
+LabelMes = tk.Label(app, text="", font=("sans-serif", FontSize, "bold"), fg="white", bg="#333")
+LabelMes.pack(pady=10)
 
 LabelSemana = tk.Label(app, text="", font=("sans-serif", FontSize, "bold"), fg="white", bg="#333")
 LabelSemana.pack(pady=10)
