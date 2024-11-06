@@ -13,6 +13,15 @@ CREATE TABLE cadastrouser (
     Sobrenome VARCHAR(45) NOT NULL
 );
 
+CREATE TABLE admin (
+    IdAdmin INT NOT NULL AUTO_INCREMENT,
+    Cpf VARCHAR(11) UNIQUE PRIMARY KEY,
+    Nome VARCHAR(45) NOT NULL,
+    Sobrenome VARCHAR(45) NOT NULL,
+    Email VARCHAR(100) NOT NULL UNIQUE,
+    Senha VARCHAR(100) NOT NULL UNIQUE
+);
+
 INSERT INTO cadastroproduto(Nome, Qtd, Preco) 
 VALUES ("Pera", 100, 12.5),
 	   ("Maca", 50, 7);
