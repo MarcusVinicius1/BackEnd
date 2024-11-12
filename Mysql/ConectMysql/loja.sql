@@ -13,8 +13,8 @@ CREATE TABLE cadastrouser (
     Sobrenome VARCHAR(45) NOT NULL
 );
 
-CREATE TABLE admin (
-    IdAdmin INT NOT NULL AUTO_INCREMENT,
+CREATE TABLE adminacess (
+    IdAdmin INT NOT NULL,
     Cpf VARCHAR(11) UNIQUE PRIMARY KEY,
     Nome VARCHAR(45) NOT NULL,
     Sobrenome VARCHAR(45) NOT NULL,
