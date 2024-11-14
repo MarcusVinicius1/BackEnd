@@ -98,16 +98,38 @@ def InserirNovoProduto(connection):
 # Função para alterar dados do usuário
 def AlterarDadosDoUsuario(connection):
     VerTabelas(connection)
-    print('\nAlterar dados de usuário:\n')
+    print('\nAlterar dados de usuário\n')
     CodigoUsuario = validar_entrada_inteiro("Código do usuário: ", tipo='int')
     nomeNovo = input("Novo nome: ")
     novoSobrenome = input("Novo sobrenome: ")
 
     try:
-        executar_query(connection, "UPDATE cadastrouser SET Nome=%s, Sobrenome=%s WHERE id=%s", (nomeNovo, novoSobrenome, CodigoUsuario))
+        executar_query(connection, "UPDATE cadastrouser SET Nome=%s, Sobrenome=%s WHERE Iduser=%s", (nomeNovo, novoSobrenome, CodigoUsuario))
         print(f"\n{GREEN}Dados do usuário alterados com sucesso!{RESET}")
     except Error as e:
         print(f"{RED}Erro ao atualizar os dados: {e}{RESET}")
+        
+# Função para deletar usuario
+def DeletarUsuario(connection):
+    VerTabelas(connection)
+    print('\nDeletar usuário\n')
+    
+    # Solicitar CPF e garantir que seja um número válido
+    while True:
+        try:
+            CpfUser = str(input("Digite o CPF do usuário: "))
+            break  # Encerra o loop se a conversão for bem-sucedida
+        except ValueError:
+            print("Por favor, insira um CPF válido (somente números).")
+    
+    try:
+        # Executar a query de exclusão do usuário com a tupla como parâmetro
+        executar_query(connection, "DELETE FROM cadastrouser WHERE CpfOrCnpj=%s", (CpfUser,))
+        print(f"\n{GREEN}Usuário deletado com sucesso!{RESET}")
+    
+    except Error as e:
+        print(f"{RED}Erro ao deletar o usuário: {e}{RESET}")
+    
 
 # Função principal para a interação com o banco de dados
 def ExecutarConsultas(connection):
@@ -115,7 +137,8 @@ def ExecutarConsultas(connection):
         AcoesBanco = [
             'Ver tabelas',  # Ok
             'Inserir novo produto',  # Ok
-            'Alterar dados de um usuário'
+            'Alterar dados de um usuário', # Ok
+            'Deletar usuario' # Ok
         ]
 
         print("\nEscolha uma ação:")
@@ -131,6 +154,8 @@ def ExecutarConsultas(connection):
                 InserirNovoProduto(connection)
             case 3:
                 AlterarDadosDoUsuario(connection)
+            case 4:
+                DeletarUsuario(connection)
 
         input(f"\n{BLUE}Pressione Enter para sair...{RESET}")
 
@@ -196,5 +221,4 @@ def Main():
             LimparTerminal()
             ConexaoMysql()
             break
-
 Main()
