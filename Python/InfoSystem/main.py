@@ -3,6 +3,7 @@ Instalar as libs
 
 -- psutil          = pip install psutil
 -- python-dotenv   = pip install python-dotenv
+-- qrcode          = pip install qrcode[pil] Pillow
 """
 import tkinter as tk
 from tkinter import scrolledtext, messagebox
@@ -15,14 +16,22 @@ import socket
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 from dotenv import load_dotenv
 from time import sleep
 import logging
+from datetime import datetime
+import qrcode
+import base64
+from io import BytesIO
 
 # Configuração de logging
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
 os.system('cls' if os.name == 'nt' else 'clear')
+
+def formatTime(n):
+    return f'0{n}' if n < 10 else str(n)
 
 class SystemScannerApp:
     Separacao = '------------------'
@@ -31,8 +40,9 @@ class SystemScannerApp:
         self.master = master
         self.master.title("Suporte online")
         self.master.configure(background="#222")
-        self.master.minsize(width=700, height=470)
-        self.master.maxsize(width=700, height=470)
+        self.master.minsize(width=780, height=660)
+        self.master.maxsize(width=780, height=600)
+        self.master.attributes("-fullscreen", False)
         self.master.iconbitmap('SuporteOnline.ico')
 
         self.text_area = scrolledtext.ScrolledText(master, wrap=tk.WORD, width=80, height=20)
@@ -50,11 +60,17 @@ class SystemScannerApp:
 
         self.center_window()
 
+    def ask_for_help(self):
+        """
+        Função chamada quando o usuário clica no botão 'Ajuda'.
+        Exibe uma mensagem simples de ajuda.
+        """
+        messagebox.showinfo("Ajuda", "Entre em contato com o suporte para mais ajuda.")
+
     def center_window(self):
         """
         Função para centralizar as janelas
         """
-
         self.master.update_idletasks()
         width = self.master.winfo_width()
         height = self.master.winfo_height()
@@ -67,23 +83,6 @@ class SystemScannerApp:
     def get_info_system(self):
         """
         Função para coletar informações do sistema
-
-        Tipos de informações que serão coletados
-
-        -- MAC
-        -- IP
-        -- Host
-        -- Sistema
-        -- Processador
-        -- Release
-        -- Versão
-        -- Arquitetura
-
-        -- Total RAM
-        -- RAM disponível
-        -- Uso da RAM
-
-        -- Partições
         """
 
         try:
@@ -116,29 +115,68 @@ class SystemScannerApp:
                     free_storage = usage.free / (1024 ** 3)
 
                     partitions_info += f"\t-- Device: {partition.device}, Mountpoint: {partition.mountpoint}, File system: {partition.fstype}\n\n\tTotal armazenamento: {total_storage:.2f} GB\n\n\tArmazenamento usado: {used_storage:.2f} GB\n\n\tArmazenamento livre: {free_storage:.2f} GB\n\t{self.Separacao}\n\n"
+
                 except Exception as e:
                     logging.error(f"Erro ao obter informações da partição {partition.device}", exc_info=True)
                     partitions_info += f"\t-- Device: {partition.device}, Mountpoint: {partition.mountpoint}, File system: {partition.fstype}\n\n\tErro ao obter informações\n\t{self.Separacao}\n\n"
                     messagebox.showerror("Erro", f"Erro ao obter informações da partição {partition.device}.\nEssa partição não vai está a lista, pode enviar mesmo assim!")
 
+            DateAtual = datetime.now()
+
+            Hora = formatTime(DateAtual.hour)
+            Minuto = formatTime(DateAtual.minute)
+            Segundo = formatTime(DateAtual.second)
+            Dia = formatTime(DateAtual.day)
+            Mes = formatTime(DateAtual.month)
+            Ano = DateAtual.year
+
+            DataEnvio = '{}:{}:{} | {}/{}/{}'.format(Hora, Minuto, Segundo, Dia, Mes, Ano)
+
+            # Gerando o QR Code
+            qr = qrcode.QRCode(
+                version = 1,
+                error_correction = qrcode.constants.ERROR_CORRECT_L,
+                box_size = 10,
+                border = 4,
+            )
+            qr.add_data("https://www.tiktok.com/@accurateshot?_t=8ra1zIdyT72&_r=1")
+            qr.make(fit=True)
+
+            # Criando uma imagem do QR Code
+            img = qr.make_image(fill='black', back_color='white')
+
+            # Convertendo a imagem para base64
+            buffer = BytesIO()
+            img.save(buffer, format="PNG")
+            buffer.seek(0)
+            img_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+
             info = f"""
-            MAC: {Mac}
-            IP Address: {ip_address}
-            Host: {host}
-            Sistema: {system}
-            Processador: {processor}
-            Release: {release}
-            Versão: {version}
-            Arquitetura: {architecture}
-
-            Total RAM: {total_ram:.2f} GB
-            RAM disponível: {available_ram:.2f} GB
-            Uso da RAM: {used_ram:.2f} GB
-
-            {self.Separacao}
-
-            Partições:
-            {partitions_info}
+            <html>
+            <body>
+                <p>Data de envio: {DataEnvio}</p>
+                <p>Tecnico: {os.getenv("TECNICO")}</p>
+                {self.Separacao}
+                <p>MAC: {Mac}</p>
+                <p>IP Address: {ip_address}</p>
+                <p>Host: {host}</p>
+                <p>Sistema: {system}</p>
+                Processador: {processor}
+                <p>Release: {release}</p>
+                <p>Versão: {version}</p>
+                <p>Arquitetura: {architecture}</p>
+                {self.Separacao}
+                <p>Total RAM: {total_ram:.2f} GB</p>
+                <p>RAM disponível: {available_ram:.2f} GB</p>
+                <p>Uso da RAM: {used_ram:.2f} GB</p>
+                {self.Separacao}
+                Partições:
+                {partitions_info}
+                {self.Separacao}
+                \n
+                <img src="data:image/png;base64,{img_base64}" alt="QR Code"/>
+            </body>
+            </html>
             """
 
             return info
@@ -151,7 +189,6 @@ class SystemScannerApp:
         """
         Função para enviar informações pelo email
         """
-
         sender_email = os.getenv('EMAIL_USER')
         receiver_email = os.getenv('EMAIL_DESTINATARIO')
         password = os.getenv('EMAIL_PASSWORD')
@@ -161,7 +198,19 @@ class SystemScannerApp:
         message["To"] = receiver_email
         message["Subject"] = "Informações do Sistema"
 
-        message.attach(MIMEText(info, "plain"))
+        # Modificação aqui para enviar como HTML
+        message.attach(MIMEText(info, "html"))  # Alterado de 'plain' para 'html'
+
+        # Adicionando o QR Code como um anexo de imagem inline
+        buffer = BytesIO()
+        img = qrcode.make("Teste_qrCode") 
+        img.save(buffer, format="PNG")
+        buffer.seek(0)
+
+        qr_code_image = MIMEImage(buffer.read(), name="Tecnico.png")
+        qr_code_image.add_header('Content-ID', '<qrcode>')  # Definir o Content-ID para referência no HTML
+
+        message.attach(qr_code_image)
 
         try:
             server = smtplib.SMTP("smtp.gmail.com", 587)
@@ -187,21 +236,20 @@ class SystemScannerApp:
         """
         Função para enviar informações escaneadas, se o campo de vazio ele não enviar e mostrar uma notificação dizendo que o campo está vazio
         """
+        # Obtém as informações do sistema
+        info = self.get_info_system()
 
-        info = self.text_area.get(1.0, tk.END).strip()
+        # Verifica se as informações do sistema foram coletadas com sucesso
         if not info:
             messagebox.showwarning("Alerta", "O campo de informações está vazio. Primeiro, escaneie o sistema antes de enviar!")
         else:
+            # Envia o e-mail com as informações
             self.send_email(info)
-
-    def ask_for_help(self):
-        print('Pedido de ajuda solicitado. Implementar a funcionalidade aqui.')
 
 def main():
     """
     Função principal e login
     """
-
     load_dotenv()
     Login = os.getenv('USER')
     Key = os.getenv('KEY')
@@ -237,6 +285,7 @@ def main():
             root.mainloop()
             break
 
-if __name__ == "__main__":
+if __name__ == "__main__" and platform.system() == 'Windows':
     main()
-
+else:
+    messagebox.showwarning("Alerta", "O programa só é compatível com Windows")
