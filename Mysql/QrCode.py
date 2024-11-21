@@ -1,3 +1,5 @@
+# pip install qrcode[pil] Pillow
+
 import qrcode
 
 try:
