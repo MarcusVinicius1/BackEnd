@@ -14,7 +14,7 @@ CREATE TABLE cadastrouser (
 );
 
 CREATE TABLE adminacess (
-    IdAdmin INT NOT NULL,
+    IdAdmin INT NOT NULL AUTO_INCREMENT,
     Cpf VARCHAR(11) UNIQUE PRIMARY KEY,
     Nome VARCHAR(45) NOT NULL,
     Sobrenome VARCHAR(45) NOT NULL,
@@ -30,5 +30,8 @@ INSERT INTO cadastrouser(Nome, Sobrenome)
 VALUES ("Marcus", "Barbosa"),
 	   ("Vinicius", "Nascimento"),
        ("Caio", "Justino");
+
+INSERT INTO adminacess(Cpf, Nome, Sobrenome, Email, Senha)
+VALUES ("123.123.123-12", "Marcus", "Barbosa", "mldecoracao16@gmail.com", "max2005x");
        
 SELECT * FROM cadastroproduto;
