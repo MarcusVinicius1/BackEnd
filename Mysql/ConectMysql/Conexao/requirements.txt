@@ -1,0 +1,6 @@
+# Libs
+mysql-connector-python
+python-dotenv
+
+# Como usar
+pip install -r requirements.txt
